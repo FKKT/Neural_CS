@@ -1,0 +1,27 @@
+function [D,x] = DL_KSVD(y,K,t,L)
+[M,~]=size(y);
+d=rand(M,K);        
+for i=1:K          
+    D(:,i)=d(:,i)./norm(d(:,i));
+end
+ff=waitbar(0,'K-SVD Dictionary Learning...');
+
+for J=1:t
+    x=DL_OMP(D,y,L);
+
+    for k=1:K       
+        wk=find(x(k,:));
+        if ~isempty(wk)
+                  
+            mx=x(:,wk);   
+            mx(k,:)=0;     
+            my=D*mx;      
+            resy=y(:,wk); 
+            Ek=resy-my;   
+            
+            [U,S,V]=svds(Ek,1);
+            D(:,k)=U; 
+            x(k,wk)=S*V';  
+        end   
+    end    
+end
