@@ -1,0 +1,38 @@
+%% Spike average waveform of 96 channels
+
+clc
+clear
+close all
+
+
+load("spike96_1114.mat") 
+load('Loss_data1114.mat') 
+
+raw_data = Loss_data(:,1:60000);
+meanspike = zeros(96,60);
+
+for i = 1:96 
+    [~, spike_index] = find(spike96(i,:) == 1); 
+    num_spikes = length(spike_index); 
+    
+    spike_waveforms = zeros(num_spikes, 60); 
+    
+    for j = 1:num_spikes
+        try
+            spike_waveforms(j,:) = raw_data(i, spike_index(j)-29 : spike_index(j)+30);
+        catch
+            if spike_index(j) < 30
+                spike_waveforms(j,:) = [zeros(1, 30 - spike_index(j)), raw_data(i, 1 : spike_index(j)+30)];
+            else
+                spike_waveforms(j,:) = [raw_data(i, spike_index(j)-29 : end), zeros(1, spike_index(j) + 30 - size(raw_data, 2))];
+            end
+        end
+    end
+    
+    mean_values = mean(spike_waveforms, 1);
+
+    mean_values = mean_values - mean_values(1,1);
+    
+    meanspike(i,:) = mean_values;
+end
+
