@@ -1,0 +1,21 @@
+%% AP signal high pass filtering
+
+clc
+clear
+close all
+
+
+load("Loss_data1114.mat")
+
+%% 250HZ HP filter
+chan_num = size(Loss_data,1); 
+Loss_data = double(Loss_data);
+[b, a] = butter(5,2*pi*250/30000/2,"high"); 
+
+for i = 1:chan_num
+    forward_filtered_signal(i,:) = filtfilt(b, a, Loss_data(i,:));
+    ap_filterdata(i,:) = flipud(filtfilt(b, a, flipud(forward_filtered_signal(i,:))));
+    %save as ap_filterdata 
+end
+
+
