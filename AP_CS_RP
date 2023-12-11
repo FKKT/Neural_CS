@@ -1,10 +1,4 @@
-%% 对AP(记录相对位置)信号进行连续的CS
-% data:163003_330.ns5经过预处理的数据
-% data_spike ->  ap_csdata.mat
-% 32*32整张图像进行CS
-% 输出: result_spike_high（spike_out)
-%------------------------------------------------
-% m=380无误；m=350（3帧）；m=330（10帧）
+%% 对AP(relative position)
 
 
 clc
@@ -12,56 +6,32 @@ clear
 close all
 
 
-load("ap_csdata_p1114.mat"); %导入预处理后的数据（高阈值）
-%load("spike_data_high.mat"); %导入预处理后的数据
-sizdim2 = size(matrix_data,2); %得到列数
+load("ap_csdata_p1114.mat"); 
+sizdim2 = size(matrix_data,2); 
 
-
-%% CS （K<M<N）   
-% N=32*32=1024 信号的长度
-% M=200:100:500 观测值个数
-% K 信号的稀疏度
-
-%用整张图像进行CS
+%% CS  
 tic
-spike_out = [ ]; %存放重构后的数据
-test = zeros(2,sizdim2); %存放每一列的稀疏度K和恢复残差
+spike_out = [ ]; 
+test = zeros(2,sizdim2);
 for i = 1:sizdim2
-    spike_in = matrix_data(:,i); %按照顺序选取每列
-    K = length(find(spike_in)); %计算稀疏度
-    test(1,i) =  K ; %第一行存放稀疏度
+    spike_in = matrix_data(:,i); 
+    K = length(find(spike_in));
+    test(1,i) =  K ; 
     %[N,b]=size(spike_in); %N=1024
     N = 1024;
-    Psi = eye(N); %信号本身是稀疏的，定义稀疏矩阵为单位阵
-    M = 360; % M_set = 200:100:500
-    Phi = randn(M,N); %测量矩阵为高斯矩阵
-    A = Phi * Psi; %传感矩阵
-    y = Phi * spike_in; %得到观测向量y
+    Psi = eye(N); 
+    M = 360; 
+    Phi = randn(M,N); 
+    A = Phi * Psi;
+    y = Phi * spike_in;
     
-    %% 重构信号
-    tic
-    theta = CS_SP(y,A,ceil(K*1.2));  %  让迭代次数根据K值自适应调整
+    %% reconstruction 
+    theta = CS_SP(y,A,ceil(K*1.2));  % adaptive K value
     rec = Psi * theta; %x=Psi*theta
     spike_out = [spike_out rec];
-    fprintf('第%d列的恢复误差：',i);
-    sum(spike_in-rec) %恢复误差
 
 end
 toc
 
 spike_out = round(spike_out); %取整,去除后面小数部分
-
-
-%保存数据
-path = 'D:\Data\ms\Data\result_spike_p360_1114';
-save(path,"spike_out");
-
-
-% 找到矩阵中非零元素的索引
-raw_counts = sum(matrix_data ~= 0, 2);
-rec_counts = sum(spike_out ~= 0, 2);
-aaa = raw_counts-rec_counts;
-bbb = find(aaa ~= 0 );
-ccc = spike_out - matrix_data;
-
 
