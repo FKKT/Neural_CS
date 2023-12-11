@@ -1,0 +1,21 @@
+%% LFP signal preprocessing
+
+clc
+clear 
+close all
+
+
+load("Loss_data1114.mat")
+
+%% LP filter,downsample
+chan_num = size(Loss_data,1);
+Loss_data = double(Loss_data);
+
+% 250Hz LP filter
+[b, a] = butter(5, 2*pi*250/30000/2); 
+for i = 1:chan_num
+    forward_lfp_filterdata(i,:) = filtfilt(b, a, Loss_data(i,:));
+    lfp_filterdata(i,:) = flipud(filtfilt(b, a, flipud(forward_lfp_filterdata(i,:))));
+    down_data(i,:) = resample(lfp_filterdata(i,:),500,30000); 
+end
+
