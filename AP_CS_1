@@ -1,1 +1,41 @@
+%% AP(
+% only mark spike as 1
+
+clc
+clear 
+close all
+
+
+load('ap_csdata_1_1114.mat'); 
+sizdim2 = size(matrix_data,2); 
+
+
+%% CS （K<M<N）   
+tic
+spike_out1 = [];
+
+for i = 1:sizdim2
+    spike_in = matrix_data(:,i); 
+    K = length(find(spike_in));
+    test(1,i) = K ;
+    %[N,b]=size(spike_in); %N=1024
+    N = 1024;
+    Psi = eye(N); 
+    M = 360; 
+    Phi = randn(M,N); 
+    A = Phi * Psi; 
+    y = Phi * spike_in; 
+
+    
+    %% 重构信号
+    theta = CS_CoSaMP(y,A,ceil(K*1.2));  
+    rec = Psi * theta; %x=Psi*theta
+    spike_out1 = [spike_out1 rec];
+
+
+end
+toc
+
+spike_out = round(spike_out1);
+
 
