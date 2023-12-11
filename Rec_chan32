@@ -7,10 +7,9 @@ clear
 close all
 
 
-load("result_spike_p360_1114.mat");  %重构后的AP信号
-load("result_lfp_380_1114.mat") %重构后的LFP信号
-load('raw96_data.mat') %剔除丢包后的原信号(1:60000)
-
+load("result_spike_p360_1114.mat"); 
+load("result_lfp_380_1114.mat")
+load('raw96_data.mat') 
 
 chan = 32; 
 raw_data = raw96_data(chan,1:60000);
@@ -34,7 +33,7 @@ end
 
 
 %% spike meanwave
-spike_index = find(ap_interp); %spike所在的位置索引
+spike_index = find(ap_interp); 
 mun = size(spike_index,2);
 wave = zeros(mun,60); 
 mean_values = zeros(1,60); 
