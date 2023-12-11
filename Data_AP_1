@@ -1,0 +1,39 @@
+%% AP data preprocessing (only marked as 1)
+
+clc
+clear
+close all
+
+
+load("ap_filterdata1114.mat")
+
+threshold_val = [ 150 100 160 110 110 170 130 155 260 290 560 205 205 400 ...
+    140 200 350 350 200 200 100 250 150 190 100 230 230 200 160 230 160 200 ...
+    110 150 120 110 140 140 180 110 110 480 480 165 60 355 330 170 200 290 ...
+    150 150 190 190 240 165 165 250 140 230 360 290 80 130 130 100 95 120  ...
+    110 120 100 130 85 130 60 60 150 250 145 160 170 185 60 60 130 80 260 ...
+    70 95 180 165 155 240 115 130 155];
+
+
+bin = 60; 
+num_chan = size(ap_filterdata,1);
+num_bin = ceil(size(ap_filterdata,2)/bin);
+leng_data = size(ap_filterdata,2);
+ap_downdata = zeros(num_chan,num_bin); 
+ap_thredata = zeros(num_chan,num_bin);
+
+
+%% threshold judgment and downsample
+for i = 1:num_chan  
+    for j = 1:num_bin  
+        bin_start = (j-1)*bin+1;
+        bin_end = min(j*bin,leng_data);
+        judg_data = ap_filterdata(i,bin_start:bin_end);
+        if any(ap_filterdata(i,bin_start:bin_end) < -threshold_val(i))
+            ap_thredata(i,j) = 1;
+            %[~,spike_index]  = min(ap_filterdata(i,bin_start:bin_end)); 
+            %ap_thredata(i,j) = 1; %将spike标记为1       
+        end
+    end
+end
+
