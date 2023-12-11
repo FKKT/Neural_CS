@@ -1,0 +1,56 @@
+% Recovery
+% The reconstructed AP and LFP signals are superimposed to restore the original waveform.
+% channel 32
+
+clc
+clear
+close all
+
+
+load("result_spike_p360_1114.mat");  %重构后的AP信号
+load("result_lfp_380_1114.mat") %重构后的LFP信号
+load('raw96_data.mat') %剔除丢包后的原信号(1:60000)
+
+
+chan = 32; 
+raw_data = raw96_data(chan,1:60000);
+lfp_data = lfp_out(chan,:);
+ap_data = spike_out(chan,:); 
+
+
+%% LFP interpolation, restored to 30KHz
+lfp_interp = interp(lfp_data, 60, 3);
+
+%% AP interpolation
+ap_interp = zeros(1,60000);
+for i = 1:1000
+    if ap_data(i) == 0 
+        ap_interp((i-1)*60 + 1:i*60) = 0;
+    else
+        %ap_interp((i-1)*60 + ap_data(i) + 30) = 1;
+        ap_interp((i-1)*60 + fix(ap_data(i) - 0.5) + 30) = 1;
+    end
+end
+
+
+%% spike meanwave
+spike_index = find(ap_interp); %spike所在的位置索引
+mun = size(spike_index,2);
+wave = zeros(mun,60); 
+mean_values = zeros(1,60); 
+for i = 1:mun
+    wave(i,:) = raw_data(1,spike_index(i)-20:spike_index(i)+39);
+    mean_values = sum(wave,1)/mun;
+end
+
+mean_values = mean_values - mean_values(1,1); 
+wave_spike = zeros(1,60000); 
+for j = 1:size(spike_index,2)
+    if spike_index(j)>30
+        wave_spike(1,spike_index(j)-20:spike_index(j)+39) = mean_values;
+    end
+end
+
+wave_rec = lfp_interp + wave_spike; 
+
+
