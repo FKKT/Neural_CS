@@ -1,0 +1,54 @@
+ %% 对全部LFP信号进行CS
+% data:163003_330.ns5经过预处理的数据
+% data_spike ->  ap_csdata.mat
+% 32*32整张图像进行CS
+% 输出: result_lfp（lfp_out)
+% m=330 360 380 
+
+clc;
+clear
+close all;
+
+
+% load("lfp_csdata913.mat"); %预处理后的数据
+% load('D913.mat'); %训练好的稀疏字典
+load("lfp_csdata1114.mat"); %预处理后的数据
+load('D1114.mat'); %训练好的稀疏字典
+
+sizdim2 = size(matrix_data,2); 
+
+%% CS （K<M<N）   
+tic
+lfp_out = []; %存放重构后的数据
+prd= zeros(1,sizdim2); %存放每一列的恢复残差
+for i = 1:sizdim2
+    lfp_in = matrix_data(:,i); %%按照顺序选取每列
+    K = length(find(lfp_in)); %计算稀疏度
+    [N,b]=size(lfp_in);
+    M = 380; % M<(N/2)
+    %Phi = sign(randn(M, N)); %随机二值观测矩阵
+    Phi = randn(M,N); %测量矩阵为高斯矩阵
+    Psi = D1114 ; %稀疏矩阵为字典矩阵
+    A = Phi * Psi; %传感矩阵
+    y = Phi * lfp_in; %得到观测向量y
+   
+    %% 重构信号
+    theta = CS_gOMP(y,A,200,9);
+    rec = Psi * theta; %x=Psi*theta    
+    lfp_out =[lfp_out rec];
+    %save as  result_lfp（lfp_out)
+    prd(i) = 100 * norm(lfp_in - rec) / norm(lfp_in);
+    fprintf('第%d列的恢复残差：',i);
+    prd(i)
+end
+toc
+
+%保存数据
+% path = 'D:\Data\ms\Data\result_lfp_330_913';
+path = 'D:\Data\ms\Data\result_lfp_380_1114';
+save(path,"lfp_out");
+
+return
+plot(matrix_data(46,:))
+hold on
+plot(lfp_out(46,:))
