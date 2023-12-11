@@ -1,0 +1,16 @@
+%% Training Dictionary (LFP)
+
+clc;
+clear;
+close all;
+
+
+load("lfp_csdata1114.mat"); %导入预处理好的lfp数据
+
+
+Y = matrix_data; 
+K = 1024; 
+t = 100;  
+L = 50;  
+[D1114,x1114] = DL_KSVD(Y,K,t,L);
+
